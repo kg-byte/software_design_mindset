@@ -1,27 +1,32 @@
-from cloudengine import CloudProvider
+from dataclasses import dataclass
+from typing import Optional, Protocol
+
 from cloudengine.google import GoogleAuth
 
+QueryResult = dict[str, dict[str, list[str]]]
 
-class ACCloud(CloudProvider):
-    def __init__(self, bucket_name: str, region: str) -> None:
-        authentication = GoogleAuth("service_key.json")
-        super().__init__(
-            region=region,
-            http_auth=authentication,
-            secure=True,
-        )
-        self.bucket_name = bucket_name
+class Provider(Protocol):
+
+    def find_files(self, bucket: str, query: str, max: int) -> QueryResult:
+      ...
+
+class FilterByQuery:
+    def find_files(self, query: str, max_result: int) -> QueryResult:
+        return {"result": {"data": ["some data"]}}
+
+@dataclass
+class ACCloud:
+    region: str
+    bucket_name: str
+    http_auth: GoogleAuth = GoogleAuth("service_key.json")
+    secure: bool = True
+    find_files_method: Optional[Provider] = None
+        
 
     def find_files(self, query: str, max_result: int) -> list[str]:
-        response = self.filter_by_query(
-            bucket=self.bucket_name, query=query, max=max_result
-        )
-        return response["result"]["data"][0]
+        if self.find_files_method:
+            return self.find_files_method.find_files(query, max_result)['result']['data']
+        return []
 
-
-class VideoStorage(ACCloud):
-    def __init__(self) -> None:
-        super().__init__(
-            bucket_name="video-backup.arjancodes.com",
-            region="eu-west-1c",
-        )
+video_storage = ACCloud(bucket_name="video-backup.arjancodes.com", region="eu-west-1c")
+video_storage.find_files('cat', 10)

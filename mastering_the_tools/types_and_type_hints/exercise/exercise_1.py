@@ -1,5 +1,8 @@
+from typing import Any
+
+
 class ShoppingCart:
-    def __init__(self, owner):
+    def __init__(self, owner:str):
         """
         Initializes a shopping cart.
 
@@ -7,9 +10,9 @@ class ShoppingCart:
             owner (str): The owner of the shopping cart.
         """
         self.owner = owner
-        self.items = []
+        self.items:list[dict[str, Any]]  = []
 
-    def add_item(self, item_name, quantity, price):
+    def add_item(self, item_name:str, quantity:int, price:float):
         """
         Adds an item to the shopping cart.
 
